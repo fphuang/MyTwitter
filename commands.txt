@@ -1,0 +1,10 @@
+- run mongo docker:
+
+docker run \
+--name mongodb-fxh \
+-p 27017:27017 \
+-v /Users/fp/mongodb-store:/data/db -d mongo
+
+ docker exec -it mongodb-fxh bash
+
+ 

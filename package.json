@@ -1,0 +1,36 @@
+{
+  "name": "mytwitter",
+  "version": "1.0.0",
+  "description": "1. Create a Twitter clone by following the lecture at:  https://www.udemy.com/course/create-a-twitter-clone-with-nodejs-socketio-and-mongodb/learn/lecture/20452629#overview",
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fphuang/MyTwitter.git"
+  },
+  "author": "Fangping Huang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fphuang/MyTwitter/issues"
+  },
+  "homepage": "https://github.com/fphuang/MyTwitter#readme",
+  "dependencies": {
+    "assert": "^2.0.0",
+    "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "colors": "^1.4.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "mongodb": "^4.2.0",
+    "mongoose": "^6.0.13",
+    "nodemon": "^2.0.15",
+    "pug": "^3.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.3"
+  }
+}
