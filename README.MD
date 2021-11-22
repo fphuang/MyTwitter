@@ -6,13 +6,13 @@
  - Section 2: 11/15
  - Section 3: 11/16
  - Section 4: 11/17,18,19
- - Section 5: 11/19
- - Section 6: 11/19
- - Section 7: 11/19
- - Section 8: 11/19
- - Section 9:
- - Section 10: 
- - Section 11: 
+ - Section 5: 11/20
+ - Section 6: 11/20
+ - Section 7: 11/20
+ - Section 8: 11/20,21
+ - Section 9: 11/21
+ - Section 10: 11/21
+ - Section 11: 11/21
  - Section 12:
  - Section 13:
  - Section 14:

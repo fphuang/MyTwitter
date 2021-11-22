@@ -7,6 +7,10 @@
     --spacing: 15px;
     --greyText: rgb(101, 119, 134);
     --greyButtonText: rgba(0,0,0,0.34);
+    --red: rgb(226,34,94);
+    --redBackground: rgba(226,34,94,0.1);
+    --green: rgb(23, 191,99);
+    --greenBackground: rgba(23, 1911, 99, 0.1);
 }
 
 * {
@@ -63,6 +67,11 @@ button {
     color: var(--greyButtonText);
 }
 
+button i,
+button span {
+    pointer-events: none; /*indicate do not register any mouse event*/
+}
+
 .mainSectionContainer {
     padding: 0;
     border-left: 1px solid var(--lightGrey);
@@ -89,6 +98,16 @@ button {
     padding: var(--spacing);
     border-bottom:10px solid rgb(230,236,240);
     flex-shrink:0;  /*fix bug for Safari */
+}
+
+.modal .postFormContainer {
+    border: none;
+    padding:0;
+    padding-top:var(--spacing);
+}
+
+.modal .post {
+    padding-top: 0 0 var(--spacing) 0;
 }
 
 .userImageContainer {
@@ -183,4 +202,37 @@ button {
     background-color: #d4edff;
     color: var(--blue);
     border-radius: 50%;
+}
+
+.postButtonContainer.red button.active {
+    color: var(--red);
+}
+
+.postButtonContainer.red button:hover {
+    color: var(--red);
+    background-color: var(--redBackground);
+}
+
+.postButtonContainer.green button.active {
+    color: var(--green);
+}
+
+.postButtonContainer.green button:hover {
+    color: var(--green);
+    background-color: var(--greenBackground);
+}
+
+.postActionContainer {
+    padding-left: 35px;
+    font-size: 13px;
+    color: var(--greyText);
+    margin-bottom: 5px;
+}
+
+.replyFlag {
+    margin-bottom: 5px;
+}
+
+.replyFlag a {
+    color: var(--blue);
 }
