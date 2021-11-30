@@ -5,7 +5,7 @@ const bodyParser = require("body-parser")
 const bcrypt = require("bcrypt");
 const User = require('../schemas/UserSchema');
 
-router.get("/:id", (req, res, next) => {
+router.get('/:id', (req, res, next) => {
 
     var payload = {
         pageTitle: "View post",
@@ -14,7 +14,7 @@ router.get("/:id", (req, res, next) => {
         postId: req.params.id
     }
     
-    res.status(200).render("postPage", payload);
+    res.status(200).render('postPage', payload);
 })
 
 module.exports = router;

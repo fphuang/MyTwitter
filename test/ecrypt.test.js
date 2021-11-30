@@ -1,5 +1,5 @@
 var assert = require('assert');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 describe('#equal()', async () => {
     const plain = 'jb';

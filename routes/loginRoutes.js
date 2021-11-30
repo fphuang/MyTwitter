@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const User = require('../schemas/UserSchema');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -18,6 +18,7 @@ router.post('/', async (req, res, next) => {
     const payload = req.body;
     
     if (payload.logUserName && payload.logPassword) {
+
         var user = await User.findOne({
             $or: [
                 { userName: payload.logUserName }, 
@@ -32,7 +33,11 @@ router.post('/', async (req, res, next) => {
 
         if (user != null) {
             //fxh: bcrypt seems buggy. For example, settomg 'jb' would always return false
-            let result = await bcrypt.compare(payload.logPassword, user.password);
+            let result = await bcrypt.compare(payload.logPassword, user.password, (err,temp) => {
+            });
+
+            result = (payload.logPassword == user.password);
+            
             if (result === true) {
                 req.session.user = user;
                 return res.redirect('/');

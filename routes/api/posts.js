@@ -9,7 +9,39 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
-    var results = await getPosts({});
+    var  searchObj = req.query;
+    
+    if (searchObj.isReply != undefined) {
+        var isReply = searchObj.isReply == "true";
+        searchObj.replyTo = {$exists: isReply};
+        delete searchObj.isReply;
+    }
+
+    if (searchObj.search !== undefined) {
+        searchObj.content = {$regex: searchObj.search, $options: 'i'};
+        delete searchObj.search;
+    }
+
+    if (searchObj.followingOnly !== undefined) {
+        var followingOnly = searchObj.followingOnly == "true";
+
+        if (followingOnly) {
+            var objectIds = [];
+
+            if (!req.session.user.following) {
+                req.session.user.following = [];
+            }
+            req.session.user.following.forEach(user => {
+                objectIds.push(user);
+            })
+            objectIds.push(req.session.user._id);
+            searchObj.postedBy = {$in: objectIds};
+        }
+
+        delete searchObj.followingOnly;
+    }
+
+    var results = await getPosts(searchObj);
     res.status(200).send(results);
 });
 
@@ -123,6 +155,34 @@ router.post('/:id/retweet', async (req, res, next) => {
     res.status(200).send(post);
 });
 
+router.delete('/:id', async (req, res, next) => {
+    const postId = req.params.id;
+    Post.findByIdAndDelete(postId)
+        .then(() => res.sendStatus(202))
+        .catch((error) => {
+            console.log(error);
+            res.sendStatus(400);
+        });
+});
+
+router.put('/:id', async (req, res, next) => {
+    if (req.body.pinned != undefined) {
+        await Post.updateMany({postedBy: req.session.user}, {pinned: false})
+            .catch((error) => {
+                console.log(error);
+                res.sendStatus(400);
+            });
+    }
+
+    const postId = req.params.id;
+    Post.findByIdAndUpdate(postId, req.body)
+        .then(() => res.sendStatus(204))
+        .catch((error) => {
+            console.log(error);
+            res.sendStatus(400);
+        });
+});
+
 async function getPosts(filter) {
     var results = await Post.find(filter)
         .populate('postedBy')     //populate the postedBy field with its _id
@@ -134,6 +194,8 @@ async function getPosts(filter) {
     results = await User.populate(results, {path: 'replyTo.postedBy'});
     return await User.populate(results, {path: 'retweetData.postedBy'});
 }
+
+
 
 module.exports = router;
 

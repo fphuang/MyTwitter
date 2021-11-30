@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const User = require('../schemas/UserSchema');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 const bodyParser = require('body-parser');

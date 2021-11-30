@@ -13,19 +13,19 @@
  - Section 9: 11/21
  - Section 10: 11/21
  - Section 11: 11/21
- - Section 12:
- - Section 13:
- - Section 14:
- - Section 15:
- - Section 16:
- - Section 17:
- - Section 18:
- - Section 19
- - Section 20: 
- - Section 21: 
- - Section 22:
- - Section 23:
- - Section 24:
+ - Section 12: 11/21
+ - Section 13: 11/21, 11/22, 11/23
+ - Section 14: 11/23, 11/25
+ - Section 15: 11/25
+ - Section 16: 11/26
+ - Section 17: 11/26, 11/27
+ - Section 18: 11/27
+ - Section 19: 11/27
+ - Section 20: 11/28
+ - Section 21: 11/28
+ - Section 22: 11/28
+ - Section 23: 
+ - Section 24: 
  - Section 25:
  - Section 26:
  - Section 27:

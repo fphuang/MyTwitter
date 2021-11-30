@@ -1,3 +1,7 @@
+var cropper;
+var timer;
+var selectedUsers = [];
+
 $('#postTextarea, #replyTextarea').keyup(event => {
     var textbox = $(event.target);
     var value = textbox.val().trim();
@@ -49,14 +53,205 @@ $('#replyModal').on('show.bs.modal', event => {
     var postId = getPostIdFromElement(button);
     $('#submitReplyButton').data('id', postId);
 
-    $.get(`/api/posts/${postId}`, results => {
+    $.get('/api/posts/' + postId, results => {
         outputPosts(results.postData, $('#originalPostContainer'))
+    });
+});
+
+$('#deletePostModal').on('show.bs.modal', event => {
+    var button = $(event.relatedTarget);
+    var postId = getPostIdFromElement(button);
+    $('#deletePostButton').data('id', postId);
+});
+
+//we cannot attach the click on the document
+$('#deletePostButton').click((event) => {
+    const postId = $(event.target).data('id');
+    $.ajax({
+        url: '/api/posts/' + postId,
+        type: 'DELETE',
+        success: (data, status, xhr) => {
+            if (xhr.status != 202) {
+                alert('could not delete post');
+                return;
+            }
+            location.reload();
+        }
+    });
+});
+
+$('#confirmPinModal').on('show.bs.modal', event => {
+    var button = $(event.relatedTarget);
+    var postId = getPostIdFromElement(button);
+    $('#pinPostButton').data('id', postId);
+});
+
+//we cannot attach the click on the document
+$('#pinPostButton').click((event) => {
+    const postId = $(event.target).data('id');
+    $.ajax({
+        url: `/api/posts/${postId}`,
+        type: 'PUT',
+        data: {pinned: true},
+        success: () => {
+            location.reload();
+        }
+    });
+});
+
+$('#unpinModal').on('show.bs.modal', event => {
+    var button = $(event.relatedTarget);
+    var postId = getPostIdFromElement(button);
+    $('#unpinPostButton').data('id', postId);
+});
+
+//we cannot attach the click on the document
+$('#unpinPostButton').click((event) => {
+    const postId = $(event.target).data('id');
+    $.ajax({
+        url: `/api/posts/${postId}`,
+        type: 'PUT',
+        data: {pinned: false},
+        success: () => {
+            location.reload();
+        }
     });
 });
 
 $('#replyModal').on('hidden.bs.modal', () => {
     $('#originalPostContainer').html('');
 });
+
+$('#filePhoto').change(function() {
+    if (this.files && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = (e) => {
+            var image = document.getElementById('imagePreview');
+            image.src = e.target.result;
+            if (cropper !== undefined) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(image, {
+                aspectRatio: 1 / 1,
+                background: false,
+            });
+            
+        };
+        reader.readAsDataURL(this.files[0]);
+    }
+ });
+
+ $('#coverPhoto').change(function() {
+    if (this.files && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = (e) => {
+            var image = document.getElementById('coverPreview');
+            image.src = e.target.result;
+            if (cropper !== undefined) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(image, {
+                aspectRatio: 16 / 9,
+                background: false,
+            });
+            
+        };
+
+        reader.readAsDataURL(this.files[0]);
+    }
+ });
+
+ $('#imageUploadButton').click(() => {
+     var canvas = cropper.getCroppedCanvas();
+
+     if (canvas == null) {
+         alert('Could not upload image. Make sure it is an image file.');
+         return;
+     }
+
+     canvas.toBlob((blob) => {
+         var formData = new FormData();
+         formData.append('croppedImage', blob);
+
+        $.ajax({
+            data: formData,
+            url: '/api/users/profilePicture',
+            type: 'POST',
+            processData: false,  //ask ajax not to convert the data to string
+            contentType: false,  //ask ajax not to add the content type header
+            success: (_data, _status, _xhr) => {
+                location.reload();
+            },
+        })
+     })
+ });
+
+  $('#coverPhotoUploadButton').click(() => {
+     var canvas = cropper.getCroppedCanvas();
+
+     if (canvas == null) {
+         alert('Could not upload image. Make sure it is an image file.');
+         return;
+     }
+
+     canvas.toBlob((blob) => {
+         var formData = new FormData();
+         formData.append('croppedImage', blob);
+
+        $.ajax({
+            data: formData,
+            url: '/api/users/coverPhoto',
+            type: 'POST',
+            processData: false,  //ask ajax not to convert the data to string
+            contentType: false,  //ask ajax not to add the content type header
+            success: (_data, _status, _xhr) => {
+                location.reload();
+            },
+        })
+     })
+ });
+
+ $('#userSearchTextbox').keydown(event => {
+    clearTimeout(timer);
+    var textbox = $(event.target);
+    var value = textbox.val();
+   
+    //trying to delete a user if the del key is pressed while there is no text
+    if (value == "" && (event.which == 8 || event.keyCode == 8)) {
+        selectedUsers.pop();
+        updateSelectedUserHtml();
+        $('.resultsContainer').html('');
+
+        if (selectedUsers.length === 0) {
+            $('#createChatButton').prop('disabled', true);
+        }
+        return;
+    }
+
+    timer = setTimeout(() => {
+        value = textbox.val().trim();
+        if (value.length === 0) {
+            $('.resultsContainer').html('');
+        }
+        else {
+            searchUsers(value);
+        }
+    }, 0);
+});
+
+$('#createChatButton').click(() => {
+     var data = JSON.stringify(selectedUsers);
+
+     $.post('/api/chats', {users: data}, chat => {
+         if (!chat || !chat._id) {
+             return alert("Invalid response from server");
+         }
+         
+         window.location.href = `/messages/${chat._id}`;
+     });
+ });
 
 $(document).on('click', '.likeButton', (event) => {
     var button = $(event.target);
@@ -101,7 +296,7 @@ $(document).on('click', '.retweetButton', (event) => {
                 button.removeClass('active');
             }
         }
-    })
+    });
 });
 
 $(document).on('click', '.post', (event) => {
@@ -112,6 +307,37 @@ $(document).on('click', '.post', (event) => {
     }
 });
 
+$(document).on('click', '.followButton', (event) => {
+    var button = $(event.target);
+    const userId = button.data().user;
+    $.ajax({
+        url: `/api/users/${userId}/follow`,
+        type: 'PUT',
+        success: (data, status, xhr) => {
+            if (xhr.status == 404) {
+                return;
+            }
+
+            var delta = 1;
+            if (data.following && data.following.includes(userId)) {
+                button.addClass('following');
+                button.text('Following');
+            }
+            else {
+                button.removeClass('following');
+                button.text('Follow')
+                delta = -1;
+            }
+
+            const followersLabel = $('#followersValue');
+            if (followersLabel && followersLabel.length > 0) {
+                const followersText = +followersLabel.text();
+                followersLabel.text(followersText + delta);
+            }
+        }
+    });
+});
+
 function getPostIdFromElement(element) {
     var isRoot = element.hasClass('post');
     var rootElement = isRoot ? element : element.closest('.post');  //jQuery function to find the closest ancestor with the given parent
@@ -120,7 +346,7 @@ function getPostIdFromElement(element) {
     return postId;
 }
 
-function createPostHtml(postData) {
+function createPostHtml(postData, largeFont = false) {
     if (!postData) {
         console.error("post object is null");
     }
@@ -130,8 +356,8 @@ function createPostHtml(postData) {
     postData = isRetweet ? postData.retweetData : postData;
 
     var postedBy = postData.postedBy;
-    if (!postedBy || !postedBy._id) {
-        return console.log('User object not populated');
+    if (!postedBy || postedBy._id === undefined) {
+        return;
     }
 
     var displayName = postedBy.firstName + ' ' + postedBy.lastName;
@@ -139,6 +365,8 @@ function createPostHtml(postData) {
 
     var likeButtonActiveClass = postData.likes.includes(userLoggedIn._id) ? 'active' : '';
     var retweetButtonActiveClass = postData.retweetUsers.includes(userLoggedIn._id) ? 'active' : '';
+    var largeFontClass = largeFont ? 'largeFont': '';
+
     var retweetText = "";
     if (isRetweet) {
         retweetText = `<span>
@@ -148,14 +376,36 @@ function createPostHtml(postData) {
     }
 
     var replyFlag = '';
-    if (postData.replyTo) {
+    if (postData.replyTo && postData.replyTo._id) {
         var replyToUserName = postData.replyTo.postedBy.userName;
         replyFlag = `<div class='replyFlag'>
                         Replying to <a href='/profile/${replyToUserName}'>@${replyToUserName}</a>
                     </div>`;
     }
 
-    return `<div class='post' data-id='${postData._id}'>
+    var buttons = '';
+    var pinnedPostText = '';
+    var dataTarget = '#confirmPinModal';
+    if (postData.postedBy._id === userLoggedIn._id) {
+        var pinnedClass = "";
+        if (postData.pinned == true) {
+            pinnedClass = 'active';
+            dataTarget = '#unpinModal';
+            pinnedPostText = `
+                            <i class='fas fa-thumbtack'></i>
+                             <span>Pinned post</span>`;
+        }
+
+        buttons = `
+                 <button class='pinButton ${pinnedClass}' data-id=${postData._id} data-toggle='modal' data-target='${dataTarget}'>
+                    <i class='fas fa-thumbtack'></i>
+                 </button>
+                <button data-id=${postData._id} data-toggle='modal' data-target='#deletePostModal'>
+                    <i class='fas fa-times'></i>
+                 </button>`
+    }
+
+    return `<div class='post ${largeFontClass}' data-id='${postData._id}'>
                 <div class='postActionContainer'>
                     ${retweetText} 
                 </div>
@@ -164,10 +414,12 @@ function createPostHtml(postData) {
                         <img src='${postedBy.profilePic}'>
                     </div>
                     <div class='postContentContainer'>
+                        <div class='pinnedPostText'>${pinnedPostText}</div>
                         <div class='header'>
                             <a href='/profile/${postedBy.userName}' class='displayName'>${displayName}</a>
                             <span class='userName'>@${postedBy.userName}</span>
                             <span class='date'>${timestamp}</span>
+                            ${buttons}
                         </div>
                         ${replyFlag}
                         <div class='postBody'>
@@ -252,6 +504,51 @@ function outputPosts(results, container) {
     }
 }
 
+function outputUsers(results, container) {
+    container.html('');
+    if (results) {
+        results.forEach(result => {
+            const html = createUserHtml(result, true);
+            container.append(html);
+        });
+    }
+
+    if (results.length == 0) {
+        container.append("<span class='noResults'>No results found</span>");
+    }
+}
+
+function createUserHtml(userData, showFollowButton) {
+    const name = userData.firstName + " " + userData.lastName;
+    const isFollowing = userLoggedIn.following && userLoggedIn.following.includes(userData._id);
+    
+    const text = isFollowing ? "Following" : "Follow"
+    const buttonClass = isFollowing ? "followButton following" : "followButton"
+    let followButton = "";
+
+    if (showFollowButton && userLoggedIn._id != userData._id) {
+        followButton = `<div class='followButtonContainer'>
+                            <button class='${buttonClass}' data-user='${userData._id}'>
+                                ${text}
+                            </button>
+                        </div>`;
+    }
+
+    return `<div class='user'>
+                <div class='userImageContainer'>
+                    <img src='${userData.profilePic}'>
+                </div>
+                <div class='userDetailsContainer'>
+                    <div class='header'>
+                        <a href='/profiles/${userData.userName}'>${name}</a>
+                        <span class='userName'>@${userData.userName}</span>
+                    </div>
+                </div>
+
+                ${followButton}
+            </div>`;
+}
+
 function outputPostsWithReplies(results, container) {
     container.html('');
 
@@ -260,11 +557,61 @@ function outputPostsWithReplies(results, container) {
         container.append(html);
     }
 
-    var mainPostHtml = createPostHtml(results.postData);
+    var mainPostHtml = createPostHtml(results.postData, true);
     container.append(mainPostHtml);
 
     results.replies.forEach(result => {
         var html = createPostHtml(result);
         container.append(html);
     });
+}
+
+function searchUsers(searchTerm) {
+    $.get('/api/users', {search: searchTerm}, results => {
+        outputSelectableUsers(results, $('.resultsContainer'));
+    });
+}
+
+function outputSelectableUsers(results, container) {
+    container.html('');
+    if (results) {
+        results.forEach(result => {
+            if (result._id == userLoggedIn._id || 
+                selectedUsers.some(u => u._id == result._id)) 
+            {
+                return;
+            }
+
+            const html = createUserHtml(result, false);
+            var element = $(html);
+            element.click((event) => userSelected(result));
+
+            container.append(element);
+        });
+    }
+
+    if (results.length == 0) {
+        container.append("<span class='noResults'>No results found</span>");
+    }
+}
+
+function userSelected(user) {
+    selectedUsers.push(user);
+    updateSelectedUserHtml();
+    $('#userSearchTextbox').val('').focus();
+    $('.resultsContainer').html('');
+    $('#createChatButton').prop('disabled', false);
+}
+
+function updateSelectedUserHtml() {
+    let elements = [];
+
+    selectedUsers.forEach((user => {
+        let name = user.firstName + ' ' + user.lastName;
+        let userElement = $(`<span class='selectedUser'>${name}</span>`);
+        elements.push(userElement);
+    }));
+
+    $('.selectedUser').remove();
+    $('#selectedUsers').prepend(elements);
 }

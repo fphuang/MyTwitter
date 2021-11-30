@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const User = require('../schemas/UserSchema');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 app.set('view engine', 'pug');
 app.set('views', 'views');
@@ -38,8 +38,8 @@ router.post('/', async (req, res, next) => {
 
         if (!user) {
             var data = req.body;
-            data.password = await bcrypt.hash(password, 10);
-  
+            // data.password = await bcrypt.hash(password, 10);
+
             User.create(data).then(user => {
                 req.session.user = user;
                 return res.redirect('/');
