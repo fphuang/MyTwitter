@@ -28,7 +28,7 @@
     "mongodb": "^4.2.0",
     "mongoose": "^6.0.13",
     "multer": "^1.4.3",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.20",
     "pug": "^3.0.2"
   },
   "devDependencies": {
